@@ -1,0 +1,48 @@
+
+EmployeeID  LastName    FirstName  base64                   decoded           reportsto
+----------- ----------- ---------- ------------------------ -----------------------------
+1           Davolio     Nancy      RGF2b2xpbzpOYW5jeQ==     Davolio:Nancy     2
+2           Fuller      Andrew     RnVsbGVyOkFuZHJldw==     Fuller:Andrew     1    Admin
+3           Leverling   Janet      TGV2ZXJsaW5nOkphbmV0     Leverling:Janet   2
+4           Peacock     Margaret   UGVhY29jazpNYXJnYXJldA== Peacock:Margaret  2
+5           Buchanan    Steven     QnVjaGFuYW46U3RldmVu     Buchanan:Steven   1    Admin
+6           Suyama      Michael    U3V5YW1hOk1pY2hhZWw=     Suyama:Michael    5
+7           King        Robert     S2luZzpSb2JlcnQ=         King:Robert       5
+8           Callahan    Laura      Q2FsbGFoYW46TGF1cmE=     Callahan:Laura    3
+9           Dodsworth   Anne       RG9kc3dvcnRoOkFubmU=     Dodsworth:Anne    5
+10          user        pass       dXNlcjpwYXNz             user:pass         Not exist
+(9 row(s) affected)
+
+
+PM> Install-Package Microsoft.Web.Infrastructure -Version 1.0.0
+
+========================================================================
+Step 1 : Get Token  --> HmacIHttpModule
+GET http://localhost:25419/Token
+Authorization: Basic RGF2b2xpbyFOYW5jeSEyMDE3LTA4LTAyVDExOjEyOjIz       //Davolio:Nancy     2
+Davolio!Nancy!2017-08-02T11:12:23 --> RGF2b2xpbyFOYW5jeSEyMDE3LTA4LTAyVDExOjEyOjIz
+-->HmacToken: RGF2b2xpbyEyMDE3LTA4LTAyVDExOjEyOjIzIWh0dHA6Ly9sb2NhbGhvc3Q6MjU0MTkhNjAxOGFiNTg2OTNhNDVkOWQ3NGMwM2JhMmEyYzAwNDQyNjc3ZGE4NWMyYTBkYzYwZTVmODMzYjk2OWFkOTc5Ng==
+
+Authorization: Basic dXNlciFwYXNzITIwMTctMDgtMDJUMTE6MTI6MjM=           //user!pass    Not exist
+user!pass!2017-08-02T11:12:23 --> dXNlciFwYXNzITIwMTctMDgtMDJUMTE6MTI6MjM=
+
+Authorization: Basic S2luZyFSb2JlcnQhMjAxNy0wOC0wMlQxMToxMjoyMw==      //King:Robert       5
+King!Robert!2017-08-02T11:12:23
+
+========================================================================
+Step 2 : --> HmacAuthorization -> AuthorizeAttribute
+
+GET http://localhost:25419/data/authenticate
+Authorization: hmac RGF2b2xpbyEyMDE3LTA4LTAyVDExOjEyOjIzIWh0dHA6Ly9sb2NhbGhvc3Q6MjU0MTkhNjAxOGFiNTg2OTNhNDVkOWQ3NGMwM2JhMmEyYzAwNDQyNjc3ZGE4NWMyYTBkYzYwZTVmODMzYjk2OWFkOTc5Ng==
+Authorization: hmac dXNlciEyMDE3LTA4LTAyVDExOjEyOjIzIWh0dHA6Ly9sb2NhbGhvc3Q6MjU0MTkhZjc3Zjg3NjU5ZmUxMTI1YjE3MmM0M2NjZTJhMGZkNWM2Y2JiYjZhNmUxMTcyY2Y3ZGMwNDdiODIwZWU2YWY1Yw==
+Authorization: hmac S2luZyEyMDE3LTA4LTAyVDExOjEyOjIzIWh0dHA6Ly9sb2NhbGhvc3Q6MjU0MTkhY2ExNjgwZTM3M2QzZmE1NzNjNDViY2FjNGEyYzJlZWNlZGJlODRhYWYzM2M4OGQxZTRmN2E1N2RiMmU1OWJjMw==
+
+
+========================================================================
+Step 3 : --> HmacAuthorization -> AuthorizeAttribute
+[Authorize(Roles = "myRole")]
+GET http://localhost:25419/data/Authorize
+Authorization: hmac RGF2b2xpbyEyMDE3LTA4LTAyVDExOjEyOjIzIWh0dHA6Ly9sb2NhbGhvc3Q6MjU0MTkhNjAxOGFiNTg2OTNhNDVkOWQ3NGMwM2JhMmEyYzAwNDQyNjc3ZGE4NWMyYTBkYzYwZTVmODMzYjk2OWFkOTc5Ng==
+Authorization: hmac dXNlciEyMDE3LTA4LTAyVDExOjEyOjIzIWh0dHA6Ly9sb2NhbGhvc3Q6MjU0MTkhZjc3Zjg3NjU5ZmUxMTI1YjE3MmM0M2NjZTJhMGZkNWM2Y2JiYjZhNmUxMTcyY2Y3ZGMwNDdiODIwZWU2YWY1Yw==
+Authorization: hmac S2luZyEyMDE3LTA4LTAyVDExOjEyOjIzIWh0dHA6Ly9sb2NhbGhvc3Q6MjU0MTkhY2ExNjgwZTM3M2QzZmE1NzNjNDViY2FjNGEyYzJlZWNlZGJlODRhYWYzM2M4OGQxZTRmN2E1N2RiMmU1OWJjMw==
+--> HTTP/1.1 403 Forbidden
